@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: ["main"]
+    branches: ["master"]
   pull_request:
 
 jobs:
@@ -32,6 +32,5 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Uncomment once vitest + lib/ tests exist (Milestone 1+).
-      # - name: Unit tests
-      #   run: npm run test
+      - name: Unit tests
+        run: npm run test
