@@ -51,7 +51,12 @@ describe('adapters', () => {
   it('rejects an unknown option type', () => {
     const invalid = {
       ...sampleChain,
-      quotes: [{ ...sampleChain.quotes[0], type: 'unknown' as any }],
+      quotes: [
+        {
+          ...sampleChain.quotes[0],
+          type: 'unknown' as unknown as (typeof sampleChain.quotes)[0]['type'],
+        },
+      ],
     };
     expect(() => validateChain(invalid)).toThrow(/unknown option type/);
   });
