@@ -78,3 +78,22 @@ export interface ForwardResult {
   /** Expiries that could not be recovered, paired with the reason. */
   skipped: Array<{ expiry: string; reason: string }>;
 }
+
+export interface VolPoint {
+  /** The expiry date this point belongs to, in ISO 8601 format. */
+  expiry: string;
+  /** Time to expiry in years (ACT/365) from the valuation date. */
+  tau: number;
+  /** The strike price this point was derived from. */
+  strike: number;
+  /** The implied forward price of the underlying for this expiry. */
+  forward: number;
+  /** Log-moneyness: ln(strike / forward). */
+  k: number;
+  /** Implied volatility solved from the OTM leg's mid price. */
+  iv: number;
+  /** Total variance: iv^2 * tau. */
+  totalVar: number;
+  /** Liquidity weight carried over from the source quote. */
+  weight: number;
+}
