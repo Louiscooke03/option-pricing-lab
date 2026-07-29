@@ -56,3 +56,25 @@ export interface CleanResult {
   /** Quotes that were dropped, paired with the reason they failed cleaning. */
   dropped: Array<{ quote: RawQuote; reason: DropReason }>;
 }
+
+export interface ExpiryForward {
+  /** The expiry date this forward/discount pair was recovered for, in ISO 8601 format. */
+  expiry: string;
+  /** Time to expiry in years (ACT/365) from the valuation date. */
+  tau: number;
+  /** The implied forward price of the underlying for this expiry. */
+  forward: number;
+  /** The implied discount factor to this expiry. */
+  discountFactor: number;
+  /** The number of strikes with both a call and a put quote used in the regression. */
+  nStrikes: number;
+  /** Coefficient of determination of the parity regression; closer to 1 is a cleaner fit. */
+  rSquared: number;
+}
+
+export interface ForwardResult {
+  /** Recovered forward/discount factor per expiry, sorted by tau ascending. */
+  expiries: ExpiryForward[];
+  /** Expiries that could not be recovered, paired with the reason. */
+  skipped: Array<{ expiry: string; reason: string }>;
+}
