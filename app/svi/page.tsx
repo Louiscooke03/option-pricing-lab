@@ -102,6 +102,7 @@ export default function SVIPage() {
 
         <Plot
           className="h-96 w-full"
+          exportName={`svi-slice-${selectedExpiry}`}
           data={[
             {
               x: sviPoints.map((p) => p.k),

@@ -8,6 +8,8 @@ interface PlotProps {
   layout?: Partial<Layout>;
   config?: Partial<Config>;
   className?: string;
+  /** Base filename (no extension) used by the modebar's "download as PNG" button. */
+  exportName?: string;
 }
 
 const DARK_LAYOUT: Partial<Layout> = {
@@ -30,14 +32,20 @@ const DARK_LAYOUT: Partial<Layout> = {
     zerolinecolor: "#262626",
     linecolor: "#262626",
   },
+  modebar: {
+    bgcolor: "rgba(0,0,0,0)",
+    color: "#525252",
+    activecolor: "#d97757",
+  },
 };
 
 const DEFAULT_CONFIG: Partial<Config> = {
-  displayModeBar: false,
+  displayModeBar: true,
+  displaylogo: false,
   responsive: true,
 };
 
-export default function Plot({ data, layout, config, className = "" }: PlotProps) {
+export default function Plot({ data, layout, config, className = "", exportName = "plot" }: PlotProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const plotRef = useRef<PlotlyHTMLElement | null>(null);
 
@@ -56,7 +64,16 @@ export default function Plot({ data, layout, config, className = "" }: PlotProps
         xaxis: { ...DARK_LAYOUT.xaxis, ...layout?.xaxis },
         yaxis: { ...DARK_LAYOUT.yaxis, ...layout?.yaxis },
       };
-      const mergedConfig: Partial<Config> = { ...DEFAULT_CONFIG, ...config };
+      const mergedConfig: Partial<Config> = {
+        ...DEFAULT_CONFIG,
+        ...config,
+        toImageButtonOptions: {
+          format: "png",
+          scale: 3,
+          filename: exportName,
+          ...config?.toImageButtonOptions,
+        },
+      };
 
       plotRef.current = await Plotly.newPlot(
         container,
@@ -76,7 +93,7 @@ export default function Plot({ data, layout, config, className = "" }: PlotProps
         });
       }
     };
-  }, [data, layout, config]);
+  }, [data, layout, config, exportName]);
 
   return <div ref={containerRef} className={className} />;
 }

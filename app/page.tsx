@@ -53,6 +53,7 @@ export default function Home() {
         />
         <Plot
           className="h-80 w-full"
+          exportName="demo-sine"
           data={[
             {
               x,

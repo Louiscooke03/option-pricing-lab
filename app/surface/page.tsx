@@ -20,8 +20,11 @@ import {
   SSVIFitResult,
 } from "@/lib/ssvi";
 import { checkButterfly, checkCalendar, ButterflyCheckResult } from "@/lib/arbitrage";
+import { localVolSurface } from "@/lib/dupire";
 import { sampleChain } from "@/lib/sample/sampleChain";
 import { VolPoint } from "@/lib/types";
+
+type SurfaceView = "iv" | "localvol";
 
 const SLICE_GRID_POINTS = 120;
 const SURFACE_K_POINTS = 61;
@@ -90,12 +93,17 @@ export default function SurfacePage() {
   const { thetaKnots, ssviFit } = pipeline;
   const expiries = [...pipeline.pointsByExpiry.keys()].filter((e) => pipeline.sliceFits.has(e));
   const [selectedExpiry, setSelectedExpiry] = useState(expiries[0]);
+  const [surfaceView, setSurfaceView] = useState<SurfaceView>("iv");
 
   const tauMin = thetaKnots[0]?.tau ?? 0;
   const tauMax = thetaKnots[thetaKnots.length - 1]?.tau ?? 1;
+  // dw/dtau (and hence local variance) is taken via finite differences along the
+  // theta(tau) term structure, which is clamped flat outside its knot range -- so we
+  // stay strictly inside it here rather than claiming a value the fit isn't making.
+  const tauPad = (tauMax - tauMin) * 0.05 || 0.01;
   const allPoints = expiries.flatMap((e) => pipeline.pointsByExpiry.get(e) ?? []);
   const kGrid = buildGridFromPoints(allPoints, SURFACE_K_POINTS);
-  const tauGrid = linspace(tauMin, tauMax, SURFACE_TAU_POINTS);
+  const tauGrid = linspace(tauMin + tauPad, tauMax - tauPad, SURFACE_TAU_POINTS);
 
   const ivSurface = tauGrid.map((tau) => {
     const theta = thetaOf(tau, thetaKnots);
@@ -104,6 +112,9 @@ export default function SurfacePage() {
       return Math.sqrt(w / tau);
     });
   });
+
+  const localVol = localVolSurface(kGrid, tauGrid, ssviFit.params, thetaKnots);
+  const localVolOk = localVol.negativeRegions.length === 0;
 
   const butterflyOk = pipeline.butterflyResults.every((r) => r.result.ok);
   const worstButterfly = pipeline.butterflyResults.reduce(
@@ -144,16 +155,36 @@ export default function SurfacePage() {
 
       <section className="flex flex-col gap-6">
         <SectionNumber current={8} total={9} />
-        <h2 className="text-lg font-medium text-foreground">Implied-vol surface</h2>
+        <h2 className="text-lg font-medium text-foreground">
+          {surfaceView === "iv" ? "Implied-vol surface" : "Dupire local-vol surface"}
+        </h2>
+
+        <div className="flex gap-2">
+          {(["iv", "localvol"] as const).map((view) => (
+            <button
+              key={view}
+              type="button"
+              onClick={() => setSurfaceView(view)}
+              className={`inline-flex items-center rounded-full border px-3 py-1 font-mono text-xs transition-colors ${
+                surfaceView === view
+                  ? "border-accent bg-accent/10 text-accent"
+                  : "border-border text-muted hover:text-foreground"
+              }`}
+            >
+              {view === "iv" ? "Implied vol" : "Local vol"}
+            </button>
+          ))}
+        </div>
 
         <Plot
           className="h-[520px] w-full"
+          exportName={surfaceView === "iv" ? "ssvi-implied-vol-surface" : "dupire-localvol-surface"}
           data={[
             {
               type: "surface",
               x: kGrid,
               y: tauGrid,
-              z: ivSurface,
+              z: surfaceView === "iv" ? ivSurface : localVol.sigma,
               colorscale: "Viridis",
               showscale: true,
             },
@@ -163,7 +194,7 @@ export default function SurfacePage() {
             scene: {
               xaxis: { title: { text: "log-moneyness k" } },
               yaxis: { title: { text: "tau (years)" } },
-              zaxis: { title: { text: "implied vol" } },
+              zaxis: { title: { text: surfaceView === "iv" ? "implied vol" : "local vol" } },
             },
           }}
         />
@@ -172,12 +203,15 @@ export default function SurfacePage() {
           <Chip>{butterflyOk ? "butterfly ok (all expiries)" : "butterfly violation detected"}</Chip>
           <Chip>worst min g(k) = {worstButterfly?.result.minG.toExponential(3)}</Chip>
           <Chip>{pipeline.calendarResult.ok ? "calendar ok" : "calendar crossings detected"}</Chip>
+          <Chip>min local variance = {localVol.minLocalVar.toExponential(3)}</Chip>
+          <Chip>{localVolOk ? "local vol >= 0 everywhere" : `${localVol.negativeRegions.length} negative region(s)`}</Chip>
         </div>
 
-        <EquationBlock caption="phi(theta) = eta * theta^(-gamma);  w(k,theta) = (theta/2)*(1 + rho*phi*k + sqrt((phi*k+rho)^2 + (1-rho^2)))">
+        <EquationBlock caption="sigma_loc^2(k,tau) = (dw/dtau) / g(k,tau), dw/dtau via finite differences along theta(tau)">
           Arbitrage-free by construction: checkButterfly and checkCalendar (lib/arbitrage.ts) are
           run against every fitted expiry&apos;s equivalent raw-SVI slice, converted analytically
-          from (theta, rho, eta, gamma).
+          from (theta, rho, eta, gamma); the Dupire local-vol surface (lib/dupire.ts) reuses the
+          same butterfly indicator g(k) as its denominator.
         </EquationBlock>
       </section>
 
@@ -207,6 +241,7 @@ export default function SurfacePage() {
 
         <Plot
           className="h-96 w-full"
+          exportName={`ssvi-vs-svi-${selectedExpiry}`}
           data={[
             {
               x: sviPoints.map((p) => p.k),

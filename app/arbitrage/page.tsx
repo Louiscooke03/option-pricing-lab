@@ -156,6 +156,7 @@ export default function ArbitragePage() {
           <>
             <Plot
               className="h-72 w-full"
+              exportName={`butterfly-g-${slice.expiry}`}
               data={[
                 {
                   x: gGrid,
@@ -187,6 +188,7 @@ export default function ArbitragePage() {
 
             <Plot
               className="h-72 w-full"
+              exportName={`density-${slice.expiry}`}
               data={[
                 {
                   x: gGrid,
@@ -235,6 +237,7 @@ export default function ArbitragePage() {
 
         <Plot
           className="h-96 w-full"
+          exportName="calendar-term-structure"
           data={slices.map((s) => {
             const pad = (s.kMax - s.kMin) * 0.15 || 0.05;
             const grid = buildGrid(s.kMin, s.kMax, pad, GRID_POINTS);
