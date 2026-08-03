@@ -61,7 +61,7 @@ export default function SVIPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-16 px-6 py-24 sm:px-8">
       <header className="flex flex-col gap-4">
-        <SectionNumber current={4} total={7} />
+        <SectionNumber current={4} total={9} />
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           SVI slice fit
         </h1>
@@ -78,7 +78,7 @@ export default function SVIPage() {
       </header>
 
       <section className="flex flex-col gap-6">
-        <SectionNumber current={5} total={7} />
+        <SectionNumber current={5} total={9} />
 
         <div className="flex flex-wrap gap-2">
           {expiries.map((expiry) => {

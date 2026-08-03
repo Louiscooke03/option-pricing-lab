@@ -113,7 +113,7 @@ export default function ArbitragePage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-16 px-6 py-24 sm:px-8">
       <header className="flex flex-col gap-4">
-        <SectionNumber current={6} total={7} />
+        <SectionNumber current={6} total={9} />
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           Static arbitrage guardrails
         </h1>
@@ -129,7 +129,7 @@ export default function ArbitragePage() {
       </header>
 
       <section className="flex flex-col gap-6">
-        <SectionNumber current={6} total={7} />
+        <SectionNumber current={6} total={9} />
         <h2 className="text-lg font-medium text-foreground">Butterfly arbitrage &amp; density</h2>
 
         <div className="flex flex-wrap gap-2">
@@ -225,7 +225,7 @@ export default function ArbitragePage() {
       </section>
 
       <section className="flex flex-col gap-6">
-        <SectionNumber current={7} total={7} />
+        <SectionNumber current={7} total={9} />
         <h2 className="text-lg font-medium text-foreground">Calendar arbitrage</h2>
         <p className="max-w-xl text-base leading-7 text-muted">
           Every fitted total-variance slice w(k), overlaid and coloured by tau. A

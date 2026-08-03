@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-16 px-6 py-24 sm:px-8">
       <header className="flex flex-col gap-4">
-        <SectionNumber current={1} total={7} />
+        <SectionNumber current={1} total={9} />
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           Option Pricing Lab
         </h1>
@@ -35,14 +35,14 @@ export default function Home() {
       </header>
 
       <section className="flex flex-col gap-4">
-        <SectionNumber current={2} total={7} />
+        <SectionNumber current={2} total={9} />
         <EquationBlock caption="lib/bs.ts → priceCall()">
           C = S₀N(d₁) − Ke^(−rT)N(d₂)
         </EquationBlock>
       </section>
 
       <section className="flex flex-col gap-6">
-        <SectionNumber current={3} total={7} />
+        <SectionNumber current={3} total={9} />
         <Slider
           label="Frequency"
           min={1}
