@@ -52,6 +52,11 @@ function linspace(lo: number, hi: number, n: number): number[] {
   return Array.from({ length: n }, (_, i) => lo + (i / (n - 1)) * (hi - lo));
 }
 
+/** Replaces any non-finite cell (NaN/Infinity) with 0 so a single bad cell can't blank a Plotly surface. */
+function sanitizeSurface(matrix: number[][]): number[][] {
+  return matrix.map((row) => row.map((v) => (Number.isFinite(v) ? v : 0)));
+}
+
 /** Linear interpolation between two hex colours, t in [0, 1]. */
 function lerpColor(hexFrom: string, hexTo: string, t: number): string {
   const from = [1, 3, 5].map((i) => parseInt(hexFrom.slice(i, i + 2), 16));
@@ -339,21 +344,24 @@ export default function HomePage() {
     const kGrid = buildGridFromPoints(allPoints, SURFACE_K_POINTS);
     const tauGrid = linspace(knotTauMin + tauPad, knotTauMax - tauPad, SURFACE_TAU_POINTS);
 
-    const ivSurface = tauGrid.map((tau) => {
+    const ivSurfaceRaw = tauGrid.map((tau) => {
       const theta = thetaOf(tau, thetaKnots);
       return kGrid.map((k) => Math.sqrt(Math.max(ssviTotalVariance(k, theta, ssviFit.params), 0) / tau));
     });
+    const ivSurface = sanitizeSurface(ivSurfaceRaw);
 
     // The local-vol surface is far more sensitive at the domain boundary than the IV
     // surface: dw/dtau is a finite difference along theta(tau), which is clamped flat
     // outside the outermost fitted expiries, producing a cliff right at the edge of the
-    // naive [knotTauMin, knotTauMax] domain. Drop the outermost tau knot at each end
-    // (staying inside well-supported interior segments), clip k to the range every kept
-    // expiry actually spans (no extrapolation), and evaluate on a finer interior tau
-    // grid for a smooth rather than blocky surface.
-    const interiorKnots = thetaKnots.length > 2 ? thetaKnots.slice(1, -1) : thetaKnots;
-    const localVolTauMin = interiorKnots[0]?.tau ?? knotTauMin;
-    const localVolTauMax = interiorKnots[interiorKnots.length - 1]?.tau ?? knotTauMax;
+    // naive [knotTauMin, knotTauMax] domain. Apply a light additional interior trim (on
+    // top of the existing tauPad) rather than dropping whole knots -- with only a
+    // handful of fitted expiries, dropping knots can leave too narrow (or degenerate,
+    // zero-width) a range, which collapses the surface entirely instead of just
+    // smoothing its edge. Clip k to the range every kept expiry actually spans (no
+    // extrapolation), and evaluate on a finer tau grid for a smoother surface.
+    const localVolTauPad = (knotTauMax - knotTauMin) * 0.1 || 0.02;
+    const localVolTauMin = knotTauMax - localVolTauPad > knotTauMin + localVolTauPad ? knotTauMin + localVolTauPad : knotTauMin;
+    const localVolTauMax = knotTauMax - localVolTauPad > knotTauMin + localVolTauPad ? knotTauMax - localVolTauPad : knotTauMax;
     const localVolTauGrid = linspace(localVolTauMin, localVolTauMax, LOCAL_VOL_TAU_POINTS);
 
     const dataKLo = Math.max(...slices.map((s) => s.kMin));
@@ -361,7 +369,8 @@ export default function HomePage() {
     const localVolKGrid =
       dataKHi > dataKLo ? linspace(dataKLo, dataKHi, SURFACE_K_POINTS) : kGrid;
 
-    const localVol = localVolSurface(localVolKGrid, localVolTauGrid, ssviFit.params, thetaKnots);
+    const localVolRaw = localVolSurface(localVolKGrid, localVolTauGrid, ssviFit.params, thetaKnots);
+    const localVol = { ...localVolRaw, sigma: sanitizeSurface(localVolRaw.sigma) };
 
     return { kGrid, tauGrid, ivSurface, localVolKGrid, localVolTauGrid, localVol };
   }, [slices, thetaKnots, ssviFit]);
@@ -587,27 +596,31 @@ export default function HomePage() {
               z: surfaceGrids.ivSurface,
               colorscale: "Viridis",
               showscale: true,
+              colorbar: { tickfont: { size: 12, color: "#eef1f8" } },
             },
           ]}
           layout={{
             margin: { l: 0, r: 0, t: 24, b: 0 },
             scene: {
               xaxis: {
-                title: { text: "log-moneyness k" },
+                title: { text: "log-moneyness k", font: { size: 14, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
+                tickfont: { size: 12, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               yaxis: {
-                title: { text: "tau (years)" },
+                title: { text: "tau (years)", font: { size: 14, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
+                tickfont: { size: 12, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               zaxis: {
-                title: { text: "implied vol" },
+                title: { text: "implied vol", font: { size: 14, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
+                tickfont: { size: 12, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
             },
@@ -696,27 +709,34 @@ export default function HomePage() {
               z: surfaceView === "iv" ? surfaceGrids.ivSurface : surfaceGrids.localVol.sigma,
               colorscale: "Viridis",
               showscale: true,
+              colorbar: { tickfont: { size: 12, color: "#eef1f8" } },
             },
           ]}
           layout={{
             margin: { l: 0, r: 0, t: 24, b: 0 },
             scene: {
               xaxis: {
-                title: { text: "log-moneyness k" },
+                title: { text: "log-moneyness k", font: { size: 14, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
+                tickfont: { size: 12, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               yaxis: {
-                title: { text: "tau (years)" },
+                title: { text: "tau (years)", font: { size: 14, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
+                tickfont: { size: 12, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               zaxis: {
-                title: { text: surfaceView === "iv" ? "implied vol" : "local vol" },
+                title: {
+                  text: surfaceView === "iv" ? "implied vol" : "local vol",
+                  font: { size: 14, color: "#eef1f8" },
+                },
                 color: "#eef1f8",
                 showticklabels: true,
+                tickfont: { size: 12, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
             },
