@@ -18,24 +18,24 @@ const DARK_LAYOUT: Partial<Layout> = {
   font: {
     family:
       "var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace",
-    color: "#ededed",
+    color: "#eef1f8",
     size: 12,
   },
   margin: { l: 48, r: 24, t: 24, b: 40 },
   xaxis: {
-    gridcolor: "#262626",
-    zerolinecolor: "#262626",
-    linecolor: "#262626",
+    gridcolor: "#1e2438",
+    zerolinecolor: "#1e2438",
+    linecolor: "#1e2438",
   },
   yaxis: {
-    gridcolor: "#262626",
-    zerolinecolor: "#262626",
-    linecolor: "#262626",
+    gridcolor: "#1e2438",
+    zerolinecolor: "#1e2438",
+    linecolor: "#1e2438",
   },
   modebar: {
     bgcolor: "rgba(0,0,0,0)",
-    color: "#525252",
-    activecolor: "#d97757",
+    color: "#7a8296",
+    activecolor: "#5568f0",
   },
 };
 
