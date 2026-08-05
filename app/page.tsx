@@ -35,6 +35,7 @@ const TOTAL_STAGES = 8;
 const GRID_POINTS = 160;
 const SURFACE_K_POINTS = 61;
 const SURFACE_TAU_POINTS = 40;
+const LOCAL_VOL_TAU_POINTS = 24;
 
 function buildGrid(kMin: number, kMax: number, pad: number, n: number): number[] {
   const lo = kMin - pad;
@@ -343,9 +344,26 @@ export default function HomePage() {
       return kGrid.map((k) => Math.sqrt(Math.max(ssviTotalVariance(k, theta, ssviFit.params), 0) / tau));
     });
 
-    const localVol = localVolSurface(kGrid, tauGrid, ssviFit.params, thetaKnots);
+    // The local-vol surface is far more sensitive at the domain boundary than the IV
+    // surface: dw/dtau is a finite difference along theta(tau), which is clamped flat
+    // outside the outermost fitted expiries, producing a cliff right at the edge of the
+    // naive [knotTauMin, knotTauMax] domain. Drop the outermost tau knot at each end
+    // (staying inside well-supported interior segments), clip k to the range every kept
+    // expiry actually spans (no extrapolation), and evaluate on a finer interior tau
+    // grid for a smooth rather than blocky surface.
+    const interiorKnots = thetaKnots.length > 2 ? thetaKnots.slice(1, -1) : thetaKnots;
+    const localVolTauMin = interiorKnots[0]?.tau ?? knotTauMin;
+    const localVolTauMax = interiorKnots[interiorKnots.length - 1]?.tau ?? knotTauMax;
+    const localVolTauGrid = linspace(localVolTauMin, localVolTauMax, LOCAL_VOL_TAU_POINTS);
 
-    return { kGrid, tauGrid, ivSurface, localVol };
+    const dataKLo = Math.max(...slices.map((s) => s.kMin));
+    const dataKHi = Math.min(...slices.map((s) => s.kMax));
+    const localVolKGrid =
+      dataKHi > dataKLo ? linspace(dataKLo, dataKHi, SURFACE_K_POINTS) : kGrid;
+
+    const localVol = localVolSurface(localVolKGrid, localVolTauGrid, ssviFit.params, thetaKnots);
+
+    return { kGrid, tauGrid, ivSurface, localVolKGrid, localVolTauGrid, localVol };
   }, [slices, thetaKnots, ssviFit]);
 
   const butterflyOk = pipeline.ssviButterflyResults.every((r) => r.result.ok);
@@ -574,9 +592,24 @@ export default function HomePage() {
           layout={{
             margin: { l: 0, r: 0, t: 24, b: 0 },
             scene: {
-              xaxis: { title: { text: "log-moneyness k" } },
-              yaxis: { title: { text: "tau (years)" } },
-              zaxis: { title: { text: "implied vol" } },
+              xaxis: {
+                title: { text: "log-moneyness k" },
+                color: "#eef1f8",
+                showticklabels: true,
+                gridcolor: "#1e2438",
+              },
+              yaxis: {
+                title: { text: "tau (years)" },
+                color: "#eef1f8",
+                showticklabels: true,
+                gridcolor: "#1e2438",
+              },
+              zaxis: {
+                title: { text: "implied vol" },
+                color: "#eef1f8",
+                showticklabels: true,
+                gridcolor: "#1e2438",
+              },
             },
           }}
         />
@@ -658,8 +691,8 @@ export default function HomePage() {
           data={[
             {
               type: "surface",
-              x: surfaceGrids.kGrid,
-              y: surfaceGrids.tauGrid,
+              x: surfaceView === "iv" ? surfaceGrids.kGrid : surfaceGrids.localVolKGrid,
+              y: surfaceView === "iv" ? surfaceGrids.tauGrid : surfaceGrids.localVolTauGrid,
               z: surfaceView === "iv" ? surfaceGrids.ivSurface : surfaceGrids.localVol.sigma,
               colorscale: "Viridis",
               showscale: true,
@@ -668,9 +701,24 @@ export default function HomePage() {
           layout={{
             margin: { l: 0, r: 0, t: 24, b: 0 },
             scene: {
-              xaxis: { title: { text: "log-moneyness k" } },
-              yaxis: { title: { text: "tau (years)" } },
-              zaxis: { title: { text: surfaceView === "iv" ? "implied vol" : "local vol" } },
+              xaxis: {
+                title: { text: "log-moneyness k" },
+                color: "#eef1f8",
+                showticklabels: true,
+                gridcolor: "#1e2438",
+              },
+              yaxis: {
+                title: { text: "tau (years)" },
+                color: "#eef1f8",
+                showticklabels: true,
+                gridcolor: "#1e2438",
+              },
+              zaxis: {
+                title: { text: surfaceView === "iv" ? "implied vol" : "local vol" },
+                color: "#eef1f8",
+                showticklabels: true,
+                gridcolor: "#1e2438",
+              },
             },
           }}
         />
