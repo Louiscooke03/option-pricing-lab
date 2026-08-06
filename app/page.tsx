@@ -586,7 +586,7 @@ export default function HomePage() {
         </div>
 
         <Plot
-          className="h-[480px] w-full"
+          className="h-[620px] w-full"
           exportName="ssvi-implied-vol-surface"
           data={[
             {
@@ -596,31 +596,32 @@ export default function HomePage() {
               z: surfaceGrids.ivSurface,
               colorscale: "Viridis",
               showscale: true,
-              colorbar: { tickfont: { size: 12, color: "#eef1f8" } },
+              colorbar: { tickfont: { size: 13, color: "#eef1f8" }, len: 0.7, thickness: 14 },
             },
           ]}
           layout={{
             margin: { l: 0, r: 0, t: 24, b: 0 },
+            font: { size: 14, color: "#eef1f8" },
             scene: {
               xaxis: {
-                title: { text: "log-moneyness k", font: { size: 14, color: "#eef1f8" } },
+                title: { text: "log-moneyness k", font: { size: 16, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 12, color: "#eef1f8" },
+                tickfont: { size: 14, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               yaxis: {
-                title: { text: "tau (years)", font: { size: 14, color: "#eef1f8" } },
+                title: { text: "tau (years)", font: { size: 16, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 12, color: "#eef1f8" },
+                tickfont: { size: 14, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               zaxis: {
-                title: { text: "implied vol", font: { size: 14, color: "#eef1f8" } },
+                title: { text: "implied vol", font: { size: 16, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 12, color: "#eef1f8" },
+                tickfont: { size: 14, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
             },
@@ -699,7 +700,7 @@ export default function HomePage() {
         </div>
 
         <Plot
-          className="h-[480px] w-full"
+          className="h-[620px] w-full"
           exportName={surfaceView === "iv" ? "ssvi-implied-vol-surface" : "dupire-localvol-surface"}
           data={[
             {
@@ -709,34 +710,35 @@ export default function HomePage() {
               z: surfaceView === "iv" ? surfaceGrids.ivSurface : surfaceGrids.localVol.sigma,
               colorscale: "Viridis",
               showscale: true,
-              colorbar: { tickfont: { size: 12, color: "#eef1f8" } },
+              colorbar: { tickfont: { size: 13, color: "#eef1f8" }, len: 0.7, thickness: 14 },
             },
           ]}
           layout={{
             margin: { l: 0, r: 0, t: 24, b: 0 },
+            font: { size: 14, color: "#eef1f8" },
             scene: {
               xaxis: {
-                title: { text: "log-moneyness k", font: { size: 14, color: "#eef1f8" } },
+                title: { text: "log-moneyness k", font: { size: 16, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 12, color: "#eef1f8" },
+                tickfont: { size: 14, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               yaxis: {
-                title: { text: "tau (years)", font: { size: 14, color: "#eef1f8" } },
+                title: { text: "tau (years)", font: { size: 16, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 12, color: "#eef1f8" },
+                tickfont: { size: 14, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               zaxis: {
                 title: {
                   text: surfaceView === "iv" ? "implied vol" : "local vol",
-                  font: { size: 14, color: "#eef1f8" },
+                  font: { size: 16, color: "#eef1f8" },
                 },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 12, color: "#eef1f8" },
+                tickfont: { size: 14, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
             },
