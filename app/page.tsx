@@ -364,6 +364,11 @@ export default function HomePage() {
     const localVolTauMax = knotTauMax - localVolTauPad > knotTauMin + localVolTauPad ? knotTauMax - localVolTauPad : knotTauMax;
     const localVolTauGrid = linspace(localVolTauMin, localVolTauMax, LOCAL_VOL_TAU_POINTS);
 
+    // Light clip to the data-supported k-intersection (no extrapolation beyond what
+    // every kept expiry actually spans). The near-vertical wall previously seen here
+    // was not a k-edge effect -- it came from a slope kink in the piecewise-linear
+    // theta(tau) interpolation, now fixed at the source in thetaOf (monotone cubic
+    // Hermite / PCHIP, C1 across knots) -- so no additional k-domain trim is needed.
     const dataKLo = Math.max(...slices.map((s) => s.kMin));
     const dataKHi = Math.min(...slices.map((s) => s.kMax));
     const localVolKGrid =

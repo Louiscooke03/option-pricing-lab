@@ -26,14 +26,44 @@ const TRUE_KNOTS: ThetaKnot[] = [
 ];
 
 describe('thetaOf', () => {
-  it('interpolates linearly between knots and clamps outside the range', () => {
-    expect(thetaOf(0.05, TRUE_KNOTS)).toBeCloseTo(0.015, 10);
-    expect(thetaOf(1.0, TRUE_KNOTS)).toBeCloseTo(0.11, 10);
+  it('passes through every knot exactly and clamps outside the range', () => {
+    TRUE_KNOTS.forEach(({ tau, theta }) => {
+      expect(thetaOf(tau, TRUE_KNOTS)).toBeCloseTo(theta, 10);
+    });
     expect(thetaOf(0.01, TRUE_KNOTS)).toBeCloseTo(0.015, 10); // below range: clamped
     expect(thetaOf(5, TRUE_KNOTS)).toBeCloseTo(0.11, 10); // above range: clamped
+  });
 
+  it('stays between neighbouring knot values (monotone, non-overshooting)', () => {
     const mid = thetaOf(0.075, TRUE_KNOTS); // halfway between tau=0.05 and tau=0.1
-    expect(mid).toBeCloseTo((0.015 + 0.025) / 2, 10);
+    expect(mid).toBeGreaterThan(0.015);
+    expect(mid).toBeLessThan(0.025);
+  });
+
+  it('is non-decreasing on a fine tau grid spanning the knots', () => {
+    const grid = Array.from({ length: 400 }, (_, i) => 0.01 + (i / 399) * (1.2 - 0.01));
+    let prev = -Infinity;
+    grid.forEach((tau) => {
+      const theta = thetaOf(tau, TRUE_KNOTS);
+      expect(theta).toBeGreaterThanOrEqual(prev - 1e-12);
+      prev = theta;
+    });
+  });
+
+  it('is C1: the finite-difference derivative has no jump across an interior knot', () => {
+    // TRUE_KNOTS[2] = { tau: 0.25, theta: 0.045 } is an interior knot with different
+    // secant slopes on either side, exactly the shape that produces a slope kink
+    // (and hence a step in the Dupire dw/dtau) under piecewise-linear interpolation.
+    const knotTau = TRUE_KNOTS[2].tau;
+    const h = 1e-4;
+
+    const derivativeAt = (tau: number): number =>
+      (thetaOf(tau + h, TRUE_KNOTS) - thetaOf(tau - h, TRUE_KNOTS)) / (2 * h);
+
+    const derivBefore = derivativeAt(knotTau - 10 * h);
+    const derivAfter = derivativeAt(knotTau + 10 * h);
+
+    expect(derivAfter).toBeCloseTo(derivBefore, 2);
   });
 });
 

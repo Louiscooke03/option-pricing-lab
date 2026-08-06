@@ -45,10 +45,78 @@ export const ssviTotalVariance = (k: number, theta: number, p: SSVIParams): numb
 };
 
 /**
+ * Fritsch-Carlson tangents for a monotone cubic Hermite (PCHIP) interpolant through
+ * knots assumed sorted by x ascending and non-decreasing in y. Shape-preserving: the
+ * resulting curve never overshoots and stays non-decreasing wherever the data is
+ * non-decreasing (unlike a natural cubic spline, which can overshoot and violate
+ * monotonicity between knots).
+ */
+const monotoneTangents = (knots: ThetaKnot[]): number[] => {
+  const n = knots.length;
+  if (n === 1) return [0];
+
+  const h: number[] = [];
+  const delta: number[] = [];
+  for (let i = 0; i < n - 1; i += 1) {
+    h.push(knots[i + 1].tau - knots[i].tau);
+    delta.push((knots[i + 1].theta - knots[i].theta) / h[i]);
+  }
+
+  if (n === 2) return [delta[0], delta[0]];
+
+  const m = new Array(n).fill(0);
+  for (let i = 1; i < n - 1; i += 1) {
+    if (delta[i - 1] * delta[i] <= 0) {
+      m[i] = 0;
+    } else {
+      const w1 = 2 * h[i] + h[i - 1];
+      const w2 = h[i] + 2 * h[i - 1];
+      m[i] = (w1 + w2) / (w1 / delta[i - 1] + w2 / delta[i]);
+    }
+  }
+
+  // Non-centered three-point endpoint derivative, clamped to preserve monotonicity
+  // (standard PCHIP endpoint rule).
+  const endpointTangent = (h0: number, h1: number, d0: number, d1: number): number => {
+    let mEnd = ((2 * h0 + h1) * d0 - h0 * d1) / (h0 + h1);
+    if (Math.sign(mEnd) !== Math.sign(d0)) {
+      mEnd = 0;
+    } else if (Math.sign(d0) !== Math.sign(d1) && Math.abs(mEnd) > 3 * Math.abs(d0)) {
+      mEnd = 3 * d0;
+    }
+    return mEnd;
+  };
+
+  m[0] = endpointTangent(h[0], h[1], delta[0], delta[1]);
+  m[n - 1] = endpointTangent(h[n - 2], h[n - 3], delta[n - 2], delta[n - 3]);
+
+  return m;
+};
+
+/** Evaluates the cubic Hermite basis on segment [knots[i], knots[i+1]] at tau. */
+const hermiteEval = (tau: number, knots: ThetaKnot[], tangents: number[], i: number): number => {
+  const left = knots[i];
+  const right = knots[i + 1];
+  const h = right.tau - left.tau;
+  const s = (tau - left.tau) / h;
+  const s2 = s * s;
+  const s3 = s2 * s;
+  const h00 = 2 * s3 - 3 * s2 + 1;
+  const h10 = s3 - 2 * s2 + s;
+  const h01 = -2 * s3 + 3 * s2;
+  const h11 = s3 - s2;
+  return h00 * left.theta + h10 * h * tangents[i] + h01 * right.theta + h11 * h * tangents[i + 1];
+};
+
+/**
  * Interpolates the ATM total-variance term structure theta(tau) from a set of knots,
  * assumed sorted by tau ascending and already non-decreasing in theta (see
- * buildThetaTermStructure). Linear interpolation between knots preserves monotonicity;
- * clamps flat outside the knot range.
+ * buildThetaTermStructure). Uses a monotone cubic Hermite (Fritsch-Carlson / PCHIP)
+ * interpolant: shape-preserving (theta stays non-decreasing, so the calendar
+ * no-arbitrage condition holds) and C1 (dtheta/dtau is continuous across interior
+ * knots, unlike piecewise-linear interpolation, whose slope jumps at every knot and
+ * otherwise leaks into a visible step in the Dupire local-vol surface). Clamps flat
+ * outside the knot range -- the cubic is not extrapolated.
  */
 export const thetaOf = (tau: number, knots: ThetaKnot[]): number => {
   if (knots.length === 0) {
@@ -56,13 +124,15 @@ export const thetaOf = (tau: number, knots: ThetaKnot[]): number => {
   }
   if (tau <= knots[0].tau) return knots[0].theta;
   if (tau >= knots[knots.length - 1].tau) return knots[knots.length - 1].theta;
+  if (knots.length === 1) return knots[0].theta;
+
+  const tangents = monotoneTangents(knots);
 
   for (let i = 0; i < knots.length - 1; i += 1) {
     const left = knots[i];
     const right = knots[i + 1];
     if (tau >= left.tau && tau <= right.tau) {
-      const t = right.tau === left.tau ? 0 : (tau - left.tau) / (right.tau - left.tau);
-      return left.theta + t * (right.theta - left.theta);
+      return hermiteEval(tau, knots, tangents, i);
     }
   }
   return knots[knots.length - 1].theta;
