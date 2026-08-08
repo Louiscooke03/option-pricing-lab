@@ -793,7 +793,7 @@ export default function HomePage() {
               z: surfaceGrids.ivSurface,
               colorscale: "Viridis",
               showscale: true,
-              colorbar: { tickfont: { size: 18, color: "#eef1f8" }, len: 0.7, thickness: 18 },
+              colorbar: { tickfont: { size: 14, color: "#eef1f8" }, len: 0.7, thickness: 18 },
             },
           ]}
           layout={{
@@ -801,24 +801,24 @@ export default function HomePage() {
             font: { size: 16, color: "#eef1f8" },
             scene: {
               xaxis: {
-                title: { text: "log-moneyness k", font: { size: 30, color: "#eef1f8" } },
+                title: { text: "log-moneyness k", font: { size: 60, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 22, color: "#eef1f8" },
+                tickfont: { size: 44, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               yaxis: {
-                title: { text: "tau (years)", font: { size: 30, color: "#eef1f8" } },
+                title: { text: "tau (years)", font: { size: 60, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 22, color: "#eef1f8" },
+                tickfont: { size: 44, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               zaxis: {
-                title: { text: "implied vol", font: { size: 30, color: "#eef1f8" } },
+                title: { text: "implied vol", font: { size: 60, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 22, color: "#eef1f8" },
+                tickfont: { size: 44, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
             },
@@ -907,7 +907,7 @@ export default function HomePage() {
               z: surfaceView === "iv" ? surfaceGrids.ivSurface : surfaceGrids.localVol.sigma,
               colorscale: "Viridis",
               showscale: true,
-              colorbar: { tickfont: { size: 18, color: "#eef1f8" }, len: 0.7, thickness: 18 },
+              colorbar: { tickfont: { size: 14, color: "#eef1f8" }, len: 0.7, thickness: 18 },
             },
           ]}
           layout={{
@@ -915,27 +915,27 @@ export default function HomePage() {
             font: { size: 16, color: "#eef1f8" },
             scene: {
               xaxis: {
-                title: { text: "log-moneyness k", font: { size: 30, color: "#eef1f8" } },
+                title: { text: "log-moneyness k", font: { size: 60, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 22, color: "#eef1f8" },
+                tickfont: { size: 44, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               yaxis: {
-                title: { text: "tau (years)", font: { size: 30, color: "#eef1f8" } },
+                title: { text: "tau (years)", font: { size: 60, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 22, color: "#eef1f8" },
+                tickfont: { size: 44, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               zaxis: {
                 title: {
                   text: surfaceView === "iv" ? "implied vol" : "local vol",
-                  font: { size: 30, color: "#eef1f8" },
+                  font: { size: 60, color: "#eef1f8" },
                 },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 22, color: "#eef1f8" },
+                tickfont: { size: 44, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
             },
