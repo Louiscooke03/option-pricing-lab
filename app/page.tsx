@@ -801,21 +801,21 @@ export default function HomePage() {
             font: { size: 16, color: "#eef1f8" },
             scene: {
               xaxis: {
-                title: { text: "log-moneyness k", font: { size: 40, color: "#eef1f8" } },
+                title: { text: "log-moneyness k", font: { size: 43, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
                 tickfont: { size: 25, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               yaxis: {
-                title: { text: "tau (years)", font: { size: 40, color: "#eef1f8" } },
+                title: { text: "tau (years)", font: { size: 43, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
                 tickfont: { size: 25, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               zaxis: {
-                title: { text: "implied vol", font: { size: 40, color: "#eef1f8" } },
+                title: { text: "implied vol", font: { size: 43, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
                 tickfont: { size: 25, color: "#eef1f8" },
@@ -915,27 +915,27 @@ export default function HomePage() {
             font: { size: 16, color: "#eef1f8" },
             scene: {
               xaxis: {
-                title: { text: "log-moneyness k", font: { size: 60, color: "#eef1f8" } },
+                title: { text: "log-moneyness k", font: { size: 43, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 44, color: "#eef1f8" },
+                tickfont: { size: 25, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               yaxis: {
-                title: { text: "tau (years)", font: { size: 60, color: "#eef1f8" } },
+                title: { text: "tau (years)", font: { size: 43, color: "#eef1f8" } },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 44, color: "#eef1f8" },
+                tickfont: { size: 25, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
               zaxis: {
                 title: {
                   text: surfaceView === "iv" ? "implied vol" : "local vol",
-                  font: { size: 60, color: "#eef1f8" },
+                  font: { size: 43, color: "#eef1f8" },
                 },
                 color: "#eef1f8",
                 showticklabels: true,
-                tickfont: { size: 44, color: "#eef1f8" },
+                tickfont: { size: 25, color: "#eef1f8" },
                 gridcolor: "#1e2438",
               },
             },
